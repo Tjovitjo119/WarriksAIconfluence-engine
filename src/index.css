@@ -1,14 +1,19 @@
-/* DO NOT CHANGE */
+/* ============================================================================
+ * WARRIKS AI — Ultra-Premium Institutional Trading Terminal
+ * Bloomberg Terminal / Quantitative Trading Desk Aesthetic
+ * Deep navy & black • Glassmorphism • Cyan/Teal/Emerald/Gold accents
+ * ============================================================================ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:is(.dark *));
 
-/* DO NOT CHANGE */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -40,182 +45,559 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-cyan: #06b6d4;
+  --color-cyan-dark: #0891b2;
+  --color-teal: #14b8a6;
+  --color-emerald: #10b981;
+  --color-gold: #f59e0b;
+  --color-gold-dark: #d97706;
+  --color-navy-900: #0a0e17;
+  --color-navy-800: #0d1520;
+  --color-navy-700: #111d2e;
+  --color-navy-600: #1a2a42;
+  --color-glass: rgba(13, 21, 32, 0.6);
 }
 
-/* WARRIKS AI — Neobrutalism Minimalism Dark Institutional Theme */
+/* ============================================================================
+ * CSS Custom Properties — Premium Institutional Palette
+ * ============================================================================ */
 :root {
-  --radius: 0rem;
-  --background: oklch(0.11 0 0);
-  --foreground: oklch(0.92 0.005 197.36);
-  --card: oklch(0.14 0.003 197.36);
-  --card-foreground: oklch(0.92 0.005 197.36);
-  --popover: oklch(0.14 0.003 197.36);
-  --popover-foreground: oklch(0.92 0.005 197.36);
-  --primary: oklch(0.55 0.17 142.5);
-  --primary-foreground: oklch(0.11 0 0);
-  --secondary: oklch(0.22 0.01 197.36);
-  --secondary-foreground: oklch(0.85 0.005 197.36);
-  --muted: oklch(0.18 0.005 197.36);
-  --muted-foreground: oklch(0.55 0.005 197.36);
-  --accent: oklch(0.25 0.01 197.36);
-  --accent-foreground: oklch(0.92 0.005 197.36);
-  --destructive: oklch(0.58 0.21 27.33);
-  --border: oklch(0.25 0.005 197.36);
-  --input: oklch(0.25 0.005 197.36);
-  --ring: oklch(0.55 0.17 142.5);
-  --chart-1: oklch(0.55 0.17 142.5);
-  --chart-2: oklch(0.54 0.2 239.5);
-  --chart-3: oklch(0.58 0.21 27.33);
-  --chart-4: oklch(0.65 0.18 82.5);
-  --chart-5: oklch(0.6 0.12 197.36);
-  --sidebar: oklch(0.12 0.002 197.36);
-  --sidebar-foreground: oklch(0.92 0.005 197.36);
-  --sidebar-primary: oklch(0.55 0.17 142.5);
-  --sidebar-primary-foreground: oklch(0.11 0 0);
-  --sidebar-accent: oklch(0.2 0.005 197.36);
-  --sidebar-accent-foreground: oklch(0.92 0.005 197.36);
-  --sidebar-border: oklch(0.25 0.005 197.36);
-  --sidebar-ring: oklch(0.55 0.17 142.5);
+  --radius: 4px;
+
+  --background: #080c14;
+  --foreground: #e2e8f0;
+
+  --card: #0d1520;
+  --card-foreground: #e2e8f0;
+
+  --popover: #0d1520;
+  --popover-foreground: #e2e8f0;
+
+  --primary: #06b6d4;
+  --primary-foreground: #080c14;
+
+  --secondary: #111d2e;
+  --secondary-foreground: #94a3b8;
+
+  --muted: #111d2e;
+  --muted-foreground: #64748b;
+
+  --accent: #1a2a42;
+  --accent-foreground: #e2e8f0;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #080c14;
+
+  --border: #1e2d3d;
+  --input: #1e2d3d;
+  --ring: #06b6d4;
+
+  --chart-1: #06b6d4;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+
+  --sidebar: #0a0e17;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #080c14;
+  --sidebar-accent: #111d2e;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: #1e2d3d;
+  --sidebar-ring: #06b6d4;
+
+  --warriks-buy: #10b981;
+  --warriks-sell: #ef4444;
+  --warriks-cyan: #06b6d4;
+  --warriks-gold: #f59e0b;
+  --warriks-glass: rgba(13, 21, 32, 0.55);
+  --warriks-glass-border: rgba(6, 182, 212, 0.15);
+  --warriks-glass-strong: rgba(13, 21, 32, 0.75);
 }
 
 .dark {
-  --background: oklch(0.11 0 0);
-  --foreground: oklch(0.92 0.005 197.36);
-  --card: oklch(0.14 0.003 197.36);
-  --card-foreground: oklch(0.92 0.005 197.36);
-  --popover: oklch(0.14 0.003 197.36);
-  --popover-foreground: oklch(0.92 0.005 197.36);
-  --primary: oklch(0.55 0.17 142.5);
-  --primary-foreground: oklch(0.11 0 0);
-  --secondary: oklch(0.22 0.01 197.36);
-  --secondary-foreground: oklch(0.85 0.005 197.36);
-  --muted: oklch(0.18 0.005 197.36);
-  --muted-foreground: oklch(0.55 0.005 197.36);
-  --accent: oklch(0.25 0.01 197.36);
-  --accent-foreground: oklch(0.92 0.005 197.36);
-  --destructive: oklch(0.58 0.21 27.33);
-  --border: oklch(0.25 0.005 197.36);
-  --input: oklch(0.25 0.005 197.36);
-  --ring: oklch(0.55 0.17 142.5);
-  --chart-1: oklch(0.55 0.17 142.5);
-  --chart-2: oklch(0.54 0.2 239.5);
-  --chart-3: oklch(0.58 0.21 27.33);
-  --chart-4: oklch(0.65 0.18 82.5);
-  --chart-5: oklch(0.6 0.12 197.36);
-  --sidebar: oklch(0.12 0.002 197.36);
-  --sidebar-foreground: oklch(0.92 0.005 197.36);
-  --sidebar-primary: oklch(0.55 0.17 142.5);
-  --sidebar-primary-foreground: oklch(0.11 0 0);
-  --sidebar-accent: oklch(0.2 0.005 197.36);
-  --sidebar-accent-foreground: oklch(0.92 0.005 197.36);
-  --sidebar-border: oklch(0.25 0.005 197.36);
-  --sidebar-ring: oklch(0.55 0.17 142.5);
+  --background: #080c14;
+  --foreground: #e2e8f0;
+  --card: #0d1520;
+  --card-foreground: #e2e8f0;
+  --popover: #0d1520;
+  --popover-foreground: #e2e8f0;
+  --primary: #06b6d4;
+  --primary-foreground: #080c14;
+  --secondary: #111d2e;
+  --secondary-foreground: #94a3b8;
+  --muted: #111d2e;
+  --muted-foreground: #64748b;
+  --accent: #1a2a42;
+  --accent-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --border: #1e2d3d;
+  --input: #1e2d3d;
+  --ring: #06b6d4;
+  --chart-1: #06b6d4;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --sidebar: #0a0e17;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #080c14;
+  --sidebar-accent: #111d2e;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: #1e2d3d;
+  --sidebar-ring: #06b6d4;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', monospace;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
   button:not([disabled]),
   [role="button"]:not([disabled]) {
     cursor: pointer;
   }
 }
 
-/* WARRIKS AI — Custom Utility Styles */
-
-/* Terminal-style font for trading data */
+/* ============================================================================
+ * Typography — System & Monospace
+ * ============================================================================ */
 .trading-mono {
-  font-family: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', monospace;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', 'Fira Code', 'IBM Plex Mono', monospace;
+  font-feature-settings: "tnum", "zero", "cv02", "cv03";
+  font-variant-numeric: tabular-nums;
+}
+
+.trading-mono-sm {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Cascadia Code', monospace;
   font-feature-settings: "tnum", "zero";
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  letter-spacing: -0.01em;
 }
 
-/* Neobrutalism border style */
-.neo-border {
-  border: 2px solid oklch(0.25 0.005 197.36);
+/* ============================================================================
+ * Glassmorphism — Premium Panel Effects
+ * ============================================================================ */
+.glass-panel {
+  background: var(--warriks-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--warriks-glass-border);
 }
 
-.neo-border-green {
-  border: 2px solid oklch(0.55 0.17 142.5);
+.glass-panel-strong {
+  background: var(--warriks-glass-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--warriks-glass-border);
 }
 
-.neo-border-red {
-  border: 2px solid oklch(0.58 0.21 27.33);
+.glass-card {
+  background: rgba(13, 21, 32, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(30, 45, 61, 0.6);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-/* Glow effects for active signals */
-.glow-green {
-  box-shadow: 0 0 8px oklch(0.55 0.17 142.5 / 0.3), 0 0 20px oklch(0.55 0.17 142.5 / 0.1);
+.glass-card:hover {
+  border-color: rgba(6, 182, 212, 0.25);
+  background: rgba(13, 21, 32, 0.55);
+}
+
+.glass-card-active {
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.06);
+}
+
+/* ============================================================================
+ * Glow Effects
+ * ============================================================================ */
+.glow-cyan {
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.15), 0 0 30px rgba(6, 182, 212, 0.05);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15), 0 0 30px rgba(16, 185, 129, 0.05);
+}
+
+.glow-gold {
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15), 0 0 30px rgba(245, 158, 11, 0.05);
 }
 
 .glow-red {
-  box-shadow: 0 0 8px oklch(0.58 0.21 27.33 / 0.3), 0 0 20px oklch(0.58 0.21 27.33 / 0.1);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.15), 0 0 30px rgba(239, 68, 68, 0.05);
 }
 
-/* Chart canvas */
-.chart-canvas {
-  image-rendering: pixelated;
+.glow-panel {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(6, 182, 212, 0.06);
 }
 
-/* Scrollbar styling */
+.glow-topbar {
+  box-shadow: 0 1px 0 rgba(6, 182, 212, 0.08), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+ * Status Indicators
+ * ============================================================================ */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-dot.online {
+  background: #10b981;
+}
+.status-dot.online::after {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.status-dot.offline {
+  background: #64748b;
+}
+.status-dot.offline::after {
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.status-dot.warning {
+  background: #f59e0b;
+}
+.status-dot.warning::after {
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.status-dot.error {
+  background: #ef4444;
+}
+.status-dot.error::after {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.1; transform: scale(1.8); }
+}
+
+/* ============================================================================
+ * Price & Direction Styles
+ * ============================================================================ */
+.price-up {
+  color: #10b981;
+}
+
+.price-down {
+  color: #ef4444;
+}
+
+.price-neutral {
+  color: #94a3b8;
+}
+
+.bg-up {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.bg-down {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* ============================================================================
+ * Custom Scrollbar — Institutional Thin Design
+ * ============================================================================ */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: oklch(0.12 0.002 197.36);
-}
-::-webkit-scrollbar-thumb {
-  background: oklch(0.25 0.005 197.36);
-  border: 0;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.35 0.005 197.36);
+  width: 3px;
+  height: 3px;
 }
 
-/* Blinking status indicator */
+::-webkit-scrollbar-track {
+  background: rgba(10, 14, 23, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(30, 45, 61, 0.8);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.3);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(30, 45, 61, 0.8) rgba(10, 14, 23, 0.5);
+}
+
+/* ============================================================================
+ * Animations & Transitions
+ * ============================================================================ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-left {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-right {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 @keyframes pulse-blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(6, 182, 212, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+}
+
+@keyframes price-flash-up {
+  0% { color: #10b981; }
+  50% { background: rgba(16, 185, 129, 0.15); }
+  100% { background: transparent; }
+}
+
+@keyframes price-flash-down {
+  0% { color: #ef4444; }
+  50% { background: rgba(239, 68, 68, 0.15); }
+  100% { background: transparent; }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.3s ease;
+}
+
+.animate-slide-left {
+  animation: slide-left 0.3s ease;
+}
+
+.animate-slide-right {
+  animation: slide-right 0.3s ease;
 }
 
 .animate-blink {
   animation: pulse-blink 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Price change animations */
-.price-up {
-  color: oklch(0.55 0.17 142.5);
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
 }
 
-.price-down {
-  color: oklch(0.58 0.21 27.33);
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
 }
 
-/* Killzone tags */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Price flash animations */
+.price-flash-up {
+  animation: price-flash-up 0.8s ease;
+}
+
+.price-flash-down {
+  animation: price-flash-down 0.8s ease;
+}
+
+/* ============================================================================
+ * Chart Canvas
+ * ============================================================================ */
+.chart-canvas {
+  image-rendering: auto;
+}
+
+/* ============================================================================
+ * Gradients
+ * ============================================================================ */
+.gradient-cyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+}
+
+.gradient-emerald {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.gradient-cyan-subtle {
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.08) 0%, transparent 100%);
+}
+
+.gradient-emerald-subtle {
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, transparent 100%);
+}
+
+.gradient-panel {
+  background: linear-gradient(180deg, rgba(13, 21, 32, 0.8) 0%, rgba(10, 14, 23, 0.95) 100%);
+}
+
+/* ============================================================================
+ * Content Area
+ * ============================================================================ */
+.content-area {
+  background: radial-gradient(ellipse at top left, rgba(6, 182, 212, 0.02) 0%, transparent 50%),
+              radial-gradient(ellipse at bottom right, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
+}
+
+/* ============================================================================
+ * Progress Bars — Premium Styled
+ * ============================================================================ */
+.progress-bar-cyan {
+  background: linear-gradient(90deg, #06b6d4, #0891b2);
+}
+
+.progress-bar-emerald {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.progress-bar-gold {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.progress-bar-red {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+/* ============================================================================
+ * Killzone Tags
+ * ============================================================================ */
 .killzone-london {
-  background: oklch(0.45 0.15 265.5 / 0.15);
-  border: 1px solid oklch(0.45 0.15 265.5 / 0.4);
-  color: oklch(0.65 0.15 265.5);
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: #06b6d4;
 }
 
 .killzone-newyork {
-  background: oklch(0.5 0.15 45.5 / 0.15);
-  border: 1px solid oklch(0.5 0.15 45.5 / 0.4);
-  color: oklch(0.7 0.15 45.5);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #f59e0b;
 }
 
-/* Signal card engine agreement badges */
-.engines-high {
-  color: oklch(0.55 0.17 142.5);
+/* ============================================================================
+ * Nav Item Styles
+ * ============================================================================ */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #64748b;
+  transition: all 0.15s ease;
+  border-left: 2px solid transparent;
 }
-.engines-med {
-  color: oklch(0.65 0.18 82.5);
+
+.nav-item:hover {
+  color: #e2e8f0;
+  background: rgba(30, 45, 61, 0.3);
 }
-.engines-low {
-  color: oklch(0.58 0.21 27.33);
+
+.nav-item.active {
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.06);
+  border-left-color: #06b6d4;
+}
+
+/* ============================================================================
+ * Button Styles
+ * ============================================================================ */
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  transition: color 0.15s ease, background 0.15s ease;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 2px;
+}
+
+.btn-ghost:hover {
+  color: #e2e8f0;
+  background: rgba(30, 45, 61, 0.5);
+}
+
+.btn-ghost.active {
+  color: #06b6d4;
+  background: rgba(6, 182, 212, 0.1);
+}
+
+/* ============================================================================
+ * Data Cell Styles
+ * ============================================================================ */
+.data-cell {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum", "zero";
+  font-variant-numeric: tabular-nums;
+}
+
+.data-header {
+  padding: 4px 8px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  font-weight: 600;
 }
