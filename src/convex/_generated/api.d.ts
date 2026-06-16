@@ -11,7 +11,10 @@
 import type * as auth from "../auth.js";
 import type * as auth_emailOtp from "../auth/emailOtp.js";
 import type * as http from "../http.js";
+import type * as journal from "../journal.js";
 import type * as marketData from "../marketData.js";
+import type * as storeMarketData from "../storeMarketData.js";
+import type * as trades from "../trades.js";
 import type * as users from "../users.js";
 
 import type {
@@ -24,7 +27,10 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   "auth/emailOtp": typeof auth_emailOtp;
   http: typeof http;
+  journal: typeof journal;
   marketData: typeof marketData;
+  storeMarketData: typeof storeMarketData;
+  trades: typeof trades;
   users: typeof users;
 }>;
 

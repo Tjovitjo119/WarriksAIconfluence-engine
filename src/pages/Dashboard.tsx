@@ -293,12 +293,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="w-[280px] shrink-0 border-l border-[#1e2d3d] overflow-hidden">
+        {/* Right Panel — Signals, Order Entry, Journal */}
+        <div className="w-[300px] shrink-0 border-l border-[#1e2d3d] overflow-hidden">
           <RightPanel
             signals={signals}
             multiStrategy={multiStrategy}
             strategySummary={strategySummary}
+            activeSymbol={activeSymbol}
+            currentPrice={candlesMap[activeSymbol]?.[candlesMap[activeSymbol]?.length - 1]?.close || 0}
+            decision={lastDecision}
+            onTradeExecuted={handleRefresh}
           />
         </div>
       </div>
