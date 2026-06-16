@@ -1,6 +1,7 @@
 // ============================================================================
 // WARRIKS AI — Institutional Trading Dashboard
-// Full layout: TopBar • LeftSidebar • Center Chart • MultiTF Grid • RightPanel • BottomAnalytics
+// Full layout: TopBar • LeftSidebar • Multi-view content area
+// Dynamically switches between all dashboard views based on activeNav
 // ============================================================================
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -17,6 +18,21 @@ import CenterChart from "@/components/CenterChart";
 import RightPanel from "@/components/RightPanel";
 import BottomAnalytics from "@/components/BottomAnalytics";
 import MultiTimeframeGrid from "@/components/MultiTimeframeGrid";
+
+// ============================================================================
+// All Dashboard View Components
+// ============================================================================
+import MarketsView from "@/components/views/MarketsView";
+import WatchlistView from "@/components/views/WatchlistView";
+import MultiChartView from "@/components/views/MultiChartView";
+import BacktestingView from "@/components/views/BacktestingView";
+import RiskManagerView from "@/components/views/RiskManagerView";
+import PerformanceView from "@/components/views/PerformanceView";
+import CalendarView from "@/components/views/CalendarView";
+import NewsView from "@/components/views/NewsView";
+import JournalView from "@/components/views/JournalView";
+import StrategyBuilderView from "@/components/views/StrategyBuilderView";
+import SettingsView from "@/components/views/SettingsView";
 
 import { analyzeSession } from "@/engine/session";
 import { runDecisionEngine } from "@/engine/decision";
@@ -42,6 +58,8 @@ export default function Dashboard() {
   const [sessionInfo, setSessionInfo] = useState(analyzeSession());
   const [refreshing, setRefreshing] = useState(false);
   const [dataSource, setDataSource] = useState<"live" | "synthetic">("synthetic");
+  // Track RightPanel active tab for signals/journal views
+  const [rightPanelTab, setRightPanelTab] = useState<"signals" | "orders" | "journal">("signals");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -215,6 +233,13 @@ export default function Dashboard() {
     setActiveSymbol(symbol);
   }, []);
 
+  const handleNavChange = useCallback((id: string) => {
+    setActiveNav(id);
+    // When navigation switches to signals/journal, sync the right panel tab
+    if (id === "signals") setRightPanelTab("signals");
+    else if (id === "journal") setRightPanelTab("journal");
+  }, []);
+
   // Strategy consensus summary
   const strategySummary = useMemo(() => {
     if (!multiStrategy) return null;
@@ -240,6 +265,40 @@ export default function Dashboard() {
     };
   }, [candlesMap, activeSymbol, lastDecision, multiStrategy]);
 
+  // ============================================================================
+  // Stats for PerformanceView
+  // ============================================================================
+  const perfStats = useMemo(() => {
+    const closed = trades.filter((t) => t.status !== "OPEN");
+    const wins = closed.filter((t) => t.status === "WIN");
+    const losses = closed.filter((t) => t.status === "LOSS");
+    const winRate = closed.length > 0 ? (wins.length / closed.length) * 100 : 0;
+    const totalPnl = closed.reduce((s, t) => s + t.pnl, 0);
+    const avgRR = closed.length > 0 ? closed.reduce((s, t) => s + t.riskReward, 0) / closed.length : 0;
+    const totalWins = wins.reduce((s, t) => s + t.pnl, 0);
+    const totalLosses = losses.reduce((s, t) => s + Math.abs(t.pnl), 0);
+    const profitFactor = totalLosses > 0 ? totalWins / totalLosses : totalWins > 0 ? Infinity : 0;
+    const bestTrade = closed.length > 0 ? Math.max(...closed.map((t) => t.pnl)) : 0;
+    const worstTrade = closed.length > 0 ? Math.min(...closed.map((t) => t.pnl)) : 0;
+
+    const returns = closed.map((t) => t.pnlPercent);
+    const avgReturn = returns.reduce((s, r) => s + r, 0) / Math.max(returns.length, 1);
+    const stdDev = Math.sqrt(returns.reduce((s, r) => s + (r - avgReturn) ** 2, 0) / Math.max(returns.length, 1));
+    const sharpe = stdDev > 0 ? (avgReturn / stdDev) * Math.sqrt(252) : 0;
+
+    let peak = -Infinity;
+    let maxDD = 0;
+    let runningPnl = 0;
+    for (const t of closed) {
+      runningPnl += t.pnl;
+      if (runningPnl > peak) peak = runningPnl;
+      const dd = ((peak - runningPnl) / Math.max(Math.abs(peak), 1)) * 100;
+      if (dd > maxDD) maxDD = dd;
+    }
+
+    return { winRate, totalPnl, avgRR, profitFactor, bestTrade, worstTrade, sharpe, maxDD, total: closed.length, wins: wins.length, losses: losses.length };
+  }, [trades]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
@@ -253,6 +312,13 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  // Determine if the current view is a "full-page" view (takes over main content)
+  const isFullPageView = ["markets", "watchlist", "multichart", "backtesting", "risk", "performance", "calendar", "news", "strategy", "settings"].includes(activeNav);
+  // Dashboard stays full layout, signals/journal are partial views using right panel
+  
+  // Full-page views that don't need the RightPanel or BottomAnalytics
+  const showFullLayout = activeNav === "dashboard" || activeNav === "signals";
 
   return (
     <div className="min-h-screen bg-[#080c14] flex flex-col overflow-hidden">
@@ -269,53 +335,108 @@ export default function Dashboard() {
         {/* Left Sidebar */}
         <LeftSidebar
           activeNav={activeNav}
-          onNavChange={setActiveNav}
+          onNavChange={handleNavChange}
         />
 
-        {/* Center Area: Chart + MultiTF Grid */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Chart */}
-          <div className="flex-1 min-h-0">
-            <CenterChart
-              data={chartData}
-              onSymbolChange={handleSelectSymbol}
-              selectedTimeframe={selectedTimeframe}
-              onTimeframeChange={setSelectedTimeframe}
-            />
+        {isFullPageView ? (
+          /* ================================================================ */
+          /* Full-Page Views (no chart/right/bottom layout)                   */
+          /* ================================================================ */
+          <div className="flex-1 min-w-0">
+            {activeNav === "markets" && (
+              <MarketsView
+                markets={markets}
+                activeSymbol={activeSymbol}
+                onSelectSymbol={(sym) => { handleSelectSymbol(sym); setActiveNav("dashboard"); }}
+                onRefresh={handleRefresh}
+                refreshing={refreshing}
+              />
+            )}
+            {activeNav === "watchlist" && (
+              <WatchlistView
+                markets={markets}
+                activeSymbol={activeSymbol}
+                onSelectSymbol={(sym) => { handleSelectSymbol(sym); setActiveNav("dashboard"); }}
+              />
+            )}
+            {activeNav === "multichart" && (
+              <MultiChartView
+                candlesMap={candlesMap}
+                activeSymbol={activeSymbol}
+                onSymbolChange={handleSelectSymbol}
+                selectedTimeframe={selectedTimeframe}
+                onTimeframeChange={setSelectedTimeframe}
+              />
+            )}
+            {activeNav === "backtesting" && <BacktestingView />}
+            {activeNav === "risk" && <RiskManagerView markets={markets} />}
+            {activeNav === "performance" && <PerformanceView stats={perfStats} />}
+            {activeNav === "calendar" && <CalendarView />}
+            {activeNav === "news" && <NewsView />}
+            {activeNav === "strategy" && <StrategyBuilderView />}
+            {activeNav === "settings" && <SettingsView />}
           </div>
-
-          {/* Multi-Timeframe Grid */}
-          <div className="h-[130px] shrink-0 border-t border-[#1e2d3d]">
-            <MultiTimeframeGrid
-              candlesMap={candlesMap}
-              symbol={activeSymbol}
-            />
+        ) : activeNav === "journal" ? (
+          /* ================================================================ */
+          /* Journal - Full page journal view                                  */
+          /* ================================================================ */
+          <div className="flex-1 min-w-0">
+            <JournalView />
           </div>
-        </div>
+        ) : (
+          /* ================================================================ */
+          /* Dashboard / Signals — Full Trading Layout                        */
+          /* Center Chart + MultiTF Grid + RightPanel + BottomAnalytics       */
+          /* ================================================================ */
+          <>
+            {/* Center Area: Chart + MultiTF Grid */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Chart */}
+              <div className="flex-1 min-h-0">
+                <CenterChart
+                  data={chartData}
+                  onSymbolChange={handleSelectSymbol}
+                  selectedTimeframe={selectedTimeframe}
+                  onTimeframeChange={setSelectedTimeframe}
+                />
+              </div>
 
-        {/* Right Panel — Signals, Order Entry, Journal */}
-        <div className="w-[300px] shrink-0 border-l border-[#1e2d3d] overflow-hidden">
-          <RightPanel
-            signals={signals}
+              {/* Multi-Timeframe Grid */}
+              <div className="h-[130px] shrink-0 border-t border-[#1e2d3d]">
+                <MultiTimeframeGrid
+                  candlesMap={candlesMap}
+                  symbol={activeSymbol}
+                />
+              </div>
+            </div>
+
+            {/* Right Panel — Signals, Order Entry, Journal */}
+            <div className="w-[300px] shrink-0 border-l border-[#1e2d3d] overflow-hidden">
+              <RightPanel
+                signals={signals}
+                multiStrategy={multiStrategy}
+                strategySummary={strategySummary}
+                activeSymbol={activeSymbol}
+                currentPrice={candlesMap[activeSymbol]?.[candlesMap[activeSymbol]?.length - 1]?.close || 0}
+                decision={lastDecision}
+                onTradeExecuted={handleRefresh}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Bottom Analytics — Only shown on dashboard/signals main layout */}
+      {showFullLayout && (
+        <div className="h-[155px] shrink-0 border-t border-[#1e2d3d]">
+          <BottomAnalytics
+            trades={trades}
+            markets={markets}
             multiStrategy={multiStrategy}
             strategySummary={strategySummary}
-            activeSymbol={activeSymbol}
-            currentPrice={candlesMap[activeSymbol]?.[candlesMap[activeSymbol]?.length - 1]?.close || 0}
-            decision={lastDecision}
-            onTradeExecuted={handleRefresh}
           />
         </div>
-      </div>
-
-      {/* Bottom Analytics */}
-      <div className="h-[155px] shrink-0 border-t border-[#1e2d3d]">
-        <BottomAnalytics
-          trades={trades}
-          markets={markets}
-          multiStrategy={multiStrategy}
-          strategySummary={strategySummary}
-        />
-      </div>
+      )}
 
       {/* Status Bar */}
       <footer className="h-6 bg-[#0a0e17] border-t border-[#1e2d3d] flex items-center justify-between px-3 shrink-0">
