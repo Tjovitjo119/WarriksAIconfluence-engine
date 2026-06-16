@@ -60,14 +60,16 @@ export function analyzeLiquidity(
   if (lastCandle.high > recentHigh && lastCandle.close < recentHigh) {
     sweepDirection = "SELL";
     liquidityTaken = true;
-    pools.find((p) => p.type === "SESSION_HIGH" && p.price === recentHigh)!.taken = true;
+    const highPool = pools.find((p) => p.type === "SESSION_HIGH" && p.price >= recentHigh);
+    if (highPool) highPool.taken = true;
   }
 
   // Sweep down: price spikes below recent lows then closes back within range
   if (lastCandle.low < recentLow && lastCandle.close > recentLow) {
     sweepDirection = "BUY";
     liquidityTaken = true;
-    pools.find((p) => p.type === "SESSION_LOW" && p.price === recentLow)!.taken = true;
+    const lowPool = pools.find((p) => p.type === "SESSION_LOW" && p.price <= recentLow);
+    if (lowPool) lowPool.taken = true;
   }
 
   // Also check for sweep of equal highs/lows
