@@ -15,6 +15,8 @@ import {
   RefreshCw,
   Timer,
 } from "lucide-react";
+import { useAction } from "convex/react";
+import { api } from "../convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +34,7 @@ import { DEFAULT_SYMBOLS } from "@/engine/types";
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, signOut, isLoading, isAuthenticated } = useAuth();
+  const fetchLiveCandles = useAction(api.marketData.fetchLiveCandles);
 
   const [activeSymbol, setActiveSymbol] = useState("NAS100");
   const [candlesMap, setCandlesMap] = useState<Record<string, Candle[]>>({});
@@ -41,6 +44,7 @@ export default function Dashboard() {
   const [lastDecision, setLastDecision] = useState<TradeDecision | null>(null);
   const [sessionInfo, setSessionInfo] = useState(analyzeSession());
   const [refreshing, setRefreshing] = useState(false);
+  const [dataSource, setDataSource] = useState<"live" | "synthetic">("synthetic");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -49,8 +53,55 @@ export default function Dashboard() {
     }
   }, [isLoading, isAuthenticated, navigate]);
 
-  // Initialize market data
-  useEffect(() => {
+  // Initialize market data — try live first, fall back to synthetic
+  const loadMarketData = useCallback(async (isInitial: boolean) => {
+    try {
+      const liveData = await fetchLiveCandles();
+
+      // Check if we got any data back
+      const hasLiveData = DEFAULT_SYMBOLS.some((s) => liveData[s] && liveData[s].length > 0);
+
+      if (hasLiveData) {
+        // Merge live data with synthetic fallback for any symbol that failed
+        const merged: Record<string, Candle[]> = {};
+        for (const symbol of DEFAULT_SYMBOLS) {
+          if (liveData[symbol] && liveData[symbol].length > 0) {
+            merged[symbol] = liveData[symbol];
+          } else {
+            merged[symbol] = generateCandles(symbol, 80);
+          }
+        }
+
+        setCandlesMap(merged);
+        setDataSource("live");
+
+        // Update market snapshots
+        const marketData: MarketData[] = [];
+        for (const symbol of DEFAULT_SYMBOLS) {
+          const candles = merged[symbol];
+          if (candles && candles.length > 0) {
+            marketData.push(getMarketSnapshot(symbol, candles));
+          }
+        }
+        setMarkets(marketData);
+
+        // Run decision engine
+        const activeCandles = merged[activeSymbol];
+        if (activeCandles && activeCandles.length > 0) {
+          const decision = runDecisionEngine(activeSymbol, activeCandles);
+          setLastDecision(decision);
+        }
+
+        if (isInitial) {
+          setSignals(getMockSignals());
+        }
+        return;
+      }
+    } catch (e) {
+      console.warn("[Dashboard] Live data fetch failed, using synthetic:", e);
+    }
+
+    // Fallback: synthetic data
     const initialCandles: Record<string, Candle[]> = {};
     const marketData: MarketData[] = [];
 
@@ -62,14 +113,30 @@ export default function Dashboard() {
 
     setCandlesMap(initialCandles);
     setMarkets(marketData);
-    setSignals(getMockSignals());
+    setDataSource("synthetic");
 
-    // Run initial decision
-    const decision = runDecisionEngine("NAS100", initialCandles["NAS100"]);
+    if (isInitial) {
+      setSignals(getMockSignals());
+    }
+
+    const decision = runDecisionEngine(activeSymbol, initialCandles[activeSymbol]);
     setLastDecision(decision);
-  }, []);
+  }, [fetchLiveCandles, activeSymbol]);
 
-  // Live data simulation
+  // Initial load
+  useEffect(() => {
+    loadMarketData(true);
+  }, []); // only on mount
+
+  // Periodic refresh from Twelve Data (every 60s to respect rate limits)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadMarketData(false);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [loadMarketData]);
+
+  // Live tick simulation between API refreshes
   useEffect(() => {
     const interval = setInterval(() => {
       setCandlesMap((prev) => {
@@ -212,8 +279,12 @@ export default function Dashboard() {
             </div>
           )}
 
+          <span className="text-[9px] text-muted-foreground mr-1">
+            {dataSource === "live" ? "● LIVE" : "○ SYNTH"}
+          </span>
+
           <button
-            onClick={handleRefresh}
+            onClick={() => { setRefreshing(true); loadMarketData(false).finally(() => setRefreshing(false)); }}
             disabled={refreshing}
             className="p-1 hover:bg-[#1a1d26] transition-colors"
           >
