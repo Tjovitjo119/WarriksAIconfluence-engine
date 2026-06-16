@@ -35,7 +35,7 @@ export function calculateAllIndicators(candles: Candle[]): IndicatorValues {
 // ─── Simple Moving Average ──────────────────────────────────────────────────
 
 export function calculateSMA(values: number[], period: number): number {
-  if (values.length < period) return 0;
+  if (values.length < period || period <= 0 || values.length === 0) return 0;
   const slice = values.slice(-period);
   return slice.reduce((s, v) => s + v, 0) / period;
 }
