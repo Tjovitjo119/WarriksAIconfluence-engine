@@ -151,8 +151,8 @@ export default function Dashboard() {
 
     return {
       candles,
-      fvgZones: decision?.entryModel === "FVG" && decision?.entryZone ? [decision.entryZone] : [],
-      orderBlocks: decision?.entryModel === "OB" && decision?.entryZone ? [decision.entryZone] : [],
+      fvgZones: decision?.orderFlowModel === "FVG" && decision?.entryZone ? [decision.entryZone] : [],
+      orderBlocks: decision?.orderFlowModel === "OB" && decision?.entryZone ? [decision.entryZone] : [],
       liquidityHighs: decision?.liquiditySweep && decision?.direction === "SELL" ? [decision?.entryZone?.high || 0].filter(Boolean) : [],
       liquidityLows: decision?.liquiditySweep && decision?.direction === "BUY" ? [decision?.entryZone?.low || 0].filter(Boolean) : [],
       sweepPoints: decision?.liquiditySweep ? [{ price: decision?.stopLoss || 0, direction: decision?.direction as "BUY" | "SELL" || "BUY" }] : [],
@@ -207,7 +207,7 @@ export default function Dashboard() {
               </span>
               <BarChart3 className="w-3 h-3 text-muted-foreground ml-1" />
               <span className="text-muted-foreground">
-                {lastDecision.enginesAgreed || lastDecision.marketBias !== "NEUTRAL" ? "3" : "0"}/4
+                {lastDecision.marketBias !== "NEUTRAL" ? (lastDecision.tradeQuality === "HIGH" ? "4" : "3") : "0"}/4
               </span>
             </div>
           )}
