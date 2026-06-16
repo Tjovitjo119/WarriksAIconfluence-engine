@@ -1,6 +1,6 @@
 // ============================================================================
 // WARRIKS AI — Premium Bottom Analytics Panel
-// Performance metrics • Risk Manager • Active Positions
+// Performance metrics • Strategy Comparison • Risk Manager • Active Positions
 // ============================================================================
 
 import { useMemo } from "react";
@@ -16,12 +16,16 @@ import {
   ArrowUp,
   ArrowDown,
   LineChart,
+  Layers,
 } from "lucide-react";
-import type { TradeRecord, MarketData } from "@/engine/types";
+import type { TradeRecord, MarketData, MultiStrategyOutput, StrategyType } from "@/engine/types";
+import { STRATEGY_LABELS } from "@/engine/types";
 
 interface BottomAnalyticsProps {
   trades: TradeRecord[];
   markets: MarketData[];
+  multiStrategy?: MultiStrategyOutput | null;
+  strategySummary?: { label: string; consensus: string; agreement: string; strategyBreakdown: { type: string; dir: string; conf: number }[] } | null;
 }
 
 function MetricCard({
@@ -49,7 +53,7 @@ function MetricCard({
   );
 }
 
-export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
+export default function BottomAnalytics({ trades, multiStrategy, strategySummary }: BottomAnalyticsProps) {
   const stats = useMemo(() => {
     const closed = trades.filter((t) => t.status !== "OPEN");
     const wins = closed.filter((t) => t.status === "WIN");
@@ -66,7 +70,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
     const bestTrade = closed.length > 0 ? Math.max(...closed.map((t) => t.pnl)) : 0;
     const worstTrade = closed.length > 0 ? Math.min(...closed.map((t) => t.pnl)) : 0;
 
-    // Sharpe ratio approximation
     const returns = closed.map((t) => t.pnlPercent);
     const avgReturn = returns.reduce((s, r) => s + r, 0) / Math.max(returns.length, 1);
     const stdDev = Math.sqrt(
@@ -74,7 +77,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
     );
     const sharpe = stdDev > 0 ? avgReturn / stdDev * Math.sqrt(252) : 0;
 
-    // Max drawdown
     let peak = -Infinity;
     let maxDD = 0;
     let runningPnl = 0;
@@ -85,7 +87,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
       if (dd > maxDD) maxDD = dd;
     }
 
-    // Daily, weekly, monthly P&L (mock)
     const dailyPnl = closed.filter((t) => t.timestamp > Date.now() - 86400000).reduce((s, t) => s + t.pnl, 0);
     const weeklyPnl = closed.filter((t) => t.timestamp > Date.now() - 604800000).reduce((s, t) => s + t.pnl, 0);
     const monthlyPnl = closed.filter((t) => t.timestamp > Date.now() - 2592000000).reduce((s, t) => s + t.pnl, 0);
@@ -100,7 +101,7 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
   return (
     <div className="h-full flex bg-[#0a0e17]">
       {/* Performance Metrics */}
-      <div className="flex-1 p-2 border-r border-[#1e2d3d] overflow-y-auto">
+      <div className="w-[280px] p-2 border-r border-[#1e2d3d] shrink-0 overflow-y-auto">
         <div className="flex items-center gap-1.5 mb-2 px-1">
           <Activity className="w-3 h-3 text-[#06b6d4]" />
           <span className="text-[9px] font-semibold text-[#e2e8f0] uppercase tracking-wider">Performance</span>
@@ -114,8 +115,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
           <MetricCard icon={DollarSign} label="Best / Worst" value={`+${stats.bestTrade.toFixed(0)}`} color="#10b981" subValue={`$${Math.abs(stats.worstTrade).toFixed(0)}`} />
           <MetricCard icon={Activity} label="Total Trades" value={`${stats.total}`} color="#64748b" />
         </div>
-
-        {/* P&L Breakdown */}
         <div className="mt-2 grid grid-cols-3 gap-2">
           <MetricCard icon={DollarSign} label="Daily P&L" value={`${stats.dailyPnl >= 0 ? "+" : ""}$${stats.dailyPnl.toFixed(0)}`} color={stats.dailyPnl >= 0 ? "#10b981" : "#ef4444"} />
           <MetricCard icon={DollarSign} label="Weekly P&L" value={`${stats.weeklyPnl >= 0 ? "+" : ""}$${stats.weeklyPnl.toFixed(0)}`} color={stats.weeklyPnl >= 0 ? "#10b981" : "#ef4444"} />
@@ -123,8 +122,73 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
         </div>
       </div>
 
+      {/* Multi-Strategy Comparison */}
+      <div className="w-[260px] p-2 border-r border-[#1e2d3d] shrink-0 overflow-y-auto">
+        <div className="flex items-center gap-1.5 mb-2 px-1">
+          <Layers className="w-3 h-3 text-[#06b6d4]" />
+          <span className="text-[9px] font-semibold text-[#e2e8f0] uppercase tracking-wider">Strategy Comparison</span>
+          {multiStrategy && (
+            <span className={`text-[8px] ml-auto font-bold ${
+              multiStrategy.agreement === "STRONG" ? "text-[#10b981]" :
+              multiStrategy.agreement === "CONFLICT" ? "text-[#ef4444]" : "text-[#f59e0b]"
+            }`}>
+              {multiStrategy.agreement}
+            </span>
+          )}
+        </div>
+
+        {strategySummary && multiStrategy ? (
+          <div className="space-y-1">
+            {multiStrategy.strategies.map((strategy, i) => {
+              const isBuy = strategy.direction === "BUY";
+              const isSell = strategy.direction === "SELL";
+              const color = isBuy ? "#10b981" : isSell ? "#ef4444" : "#64748b";
+              return (
+                <div key={i} className="px-2 py-1.5 bg-[#111d2e]/70 border border-[#1e2d3d]">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[9px] font-medium text-[#e2e8f0]">
+                      {STRATEGY_LABELS[strategy.type as StrategyType] || strategy.type}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {strategy.direction !== "NEUTRAL" && (
+                        <span className={`text-[9px] font-bold`} style={{ color }}>
+                          {strategy.direction}
+                        </span>
+                      )}
+                      <span className="text-[9px] font-bold trading-mono" style={{ color }}>
+                        {strategy.confidence}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-1 bg-[#0a0e17] overflow-hidden mb-0.5">
+                    <div
+                      className="h-full transition-all duration-500"
+                      style={{
+                        width: `${strategy.confidence}%`,
+                        background: isBuy
+                          ? "linear-gradient(90deg, #10b981, #059669)"
+                          : isSell
+                          ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                          : "linear-gradient(90deg, #64748b, #475569)",
+                      }}
+                    />
+                  </div>
+                  <span className="text-[7px] text-[#475569] leading-tight block truncate">
+                    {strategy.reason.length > 80 ? strategy.reason.slice(0, 80) + "..." : strategy.reason}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-2 py-4 text-center">
+            <span className="text-[8px] text-[#475569]">Running strategy analysis...</span>
+          </div>
+        )}
+      </div>
+
       {/* Risk Manager */}
-      <div className="w-[260px] p-2 border-r border-[#1e2d3d] shrink-0">
+      <div className="w-[220px] p-2 border-r border-[#1e2d3d] shrink-0">
         <div className="flex items-center gap-1.5 mb-2 px-1">
           <Shield className="w-3 h-3 text-[#f59e0b]" />
           <span className="text-[9px] font-semibold text-[#e2e8f0] uppercase tracking-wider">Risk Manager</span>
@@ -152,7 +216,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
           </div>
         </div>
 
-        {/* Equity curve mini */}
         <div className="mt-3 px-2">
           <div className="flex items-center gap-1.5 mb-1.5">
             <LineChart className="w-3 h-3 text-[#06b6d4]" />
@@ -182,7 +245,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
           <span className="text-[8px] text-[#475569] ml-auto">3 positions</span>
         </div>
 
-        {/* Table header */}
         <div className="grid grid-cols-10 gap-px px-2 py-1 text-[8px] text-[#475569] uppercase tracking-wider font-semibold bg-[#111d2e] border border-[#1e2d3d] mb-px">
           <span className="col-span-1">Symbol</span>
           <span className="col-span-1">Dir</span>
@@ -196,7 +258,6 @@ export default function BottomAnalytics({ trades }: BottomAnalyticsProps) {
           <span className="col-span-1 text-right">Status</span>
         </div>
 
-        {/* Position rows */}
         {[
           { symbol: "NAS100", dir: "BUY" as const, entry: 19520, current: 19578, sl: 19380, tp1: 19620, tp2: 19700, tp3: 19850, rr: 2.4, status: "Active" },
           { symbol: "XAUUSD", dir: "SELL" as const, entry: 2347, current: 2338, sl: 2360, tp1: 2330, tp2: 2320, tp3: 2305, rr: 2.0, status: "Active" },

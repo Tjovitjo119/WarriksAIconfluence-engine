@@ -19,11 +19,16 @@ import {
   ArrowDown,
   BarChart3,
   Brain,
+  GitBranch,
+  Layers,
 } from "lucide-react";
-import type { Signal, Direction } from "@/engine/types";
+import type { Signal, Direction, MultiStrategyOutput, StrategyType } from "@/engine/types";
+import { STRATEGY_LABELS } from "@/engine/types";
 
 interface RightPanelProps {
   signals: Signal[];
+  multiStrategy?: MultiStrategyOutput | null;
+  strategySummary?: { label: string; consensus: string; agreement: string; strategyBreakdown: { type: string; dir: string; conf: number }[] } | null;
 }
 
 // Mock news data
@@ -58,6 +63,37 @@ function ImpactBadge({ impact }: { impact: string }) {
   );
 }
 
+function StrategyCard({ strategy }: { strategy: { type: string; dir: string; conf: number } }) {
+  const isBuy = strategy.dir === "▲";
+  const isSell = strategy.dir === "▼";
+  const isActive = strategy.conf >= 60;
+  return (
+    <div className={`flex items-center justify-between px-2 py-1.5 border border-[#1e2d3d] bg-[#111d2e]/50 ${isActive ? (isBuy ? "border-l-[#10b981]" : isSell ? "border-l-[#ef4444]" : "") : "opacity-60"}`}>
+      <div className="flex items-center gap-1.5">
+        <span className={`text-[9px] font-medium ${isActive ? "text-[#e2e8f0]" : "text-[#64748b]"}`}>
+          {STRATEGY_LABELS[strategy.type as StrategyType] || strategy.type}
+        </span>
+        {isActive && (
+          <span className={`text-[8px] font-bold ${isBuy ? "text-[#10b981]" : isSell ? "text-[#ef4444]" : "text-[#64748b]"}`}>
+            {strategy.dir}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center gap-1">
+        <div className="w-14 h-1.5 bg-[#0a0e17] overflow-hidden">
+          <div
+            className={`h-full ${isBuy ? "bg-[#10b981]" : isSell ? "bg-[#ef4444]" : "bg-[#64748b]"}`}
+            style={{ width: `${strategy.conf}%` }}
+          />
+        </div>
+        <span className={`text-[9px] font-bold w-5 text-right ${strategy.conf >= 60 ? (isBuy ? "text-[#10b981]" : isSell ? "text-[#ef4444]" : "text-[#64748b]") : "text-[#475569]"}`}>
+          {strategy.conf}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function ProbabilityBar({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="space-y-0.5">
@@ -80,10 +116,15 @@ function ProbabilityBar({ label, value, color }: { label: string; value: number;
   );
 }
 
-export default function RightPanel({ signals }: RightPanelProps) {
+export default function RightPanel({ signals, multiStrategy, strategySummary }: RightPanelProps) {
   const mainSignal = signals[0];
   const hasSignal = !!mainSignal && mainSignal.status === "Active";
   const isBuy = mainSignal?.direction === "BUY";
+
+  const consensusColor =
+    strategySummary?.consensus === "BUY" ? "text-[#10b981]" :
+    strategySummary?.consensus === "SELL" ? "text-[#ef4444]" :
+    "text-[#64748b]";
 
   return (
     <div className="h-full flex flex-col bg-[#0a0e17] overflow-y-auto">
@@ -197,41 +238,69 @@ export default function RightPanel({ signals }: RightPanelProps) {
         )}
       </div>
 
-      {/* Probability Panel */}
+      {/* Multi-Strategy Panel */}
+      <div className="glass-card mx-2 mb-2 rounded-sm">
+        <div className="px-3 py-2 border-b border-[#1e2d3d] flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <Layers className="w-3 h-3 text-[#f59e0b]" />
+            <span className="text-[10px] font-semibold text-[#e2e8f0] uppercase tracking-wider">Strategies</span>
+          </div>
+          {multiStrategy && (
+            <div className={`flex items-center gap-1 text-[8px] font-bold ${consensusColor}`}>
+              <span>{multiStrategy.buyVotes}▲</span>
+              <span>/</span>
+              <span>{multiStrategy.sellVotes}▼</span>
+              <span className="w-px h-2.5 bg-[#1e2d3d] mx-0.5" />
+              <span className="text-[#64748b]">{multiStrategy.agreement}</span>
+            </div>
+          )}
+        </div>
+        <div className="p-2 space-y-1">
+          {strategySummary?.strategyBreakdown.map((s, i) => (
+            <StrategyCard key={i} strategy={s} />
+          ))}
+        </div>
+
+        {/* Consensus summary */}
+        {multiStrategy && (
+          <div className="px-3 py-2 border-t border-[#1e2d3d]">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] text-[#64748b]">Consensus</span>
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold ${consensusColor}`}>
+                  {multiStrategy.consensusDirection === "NEUTRAL" ? "MIXED" : multiStrategy.consensusDirection}
+                </span>
+                <span className={`text-[8px] px-1 py-0.5 border font-semibold ${
+                  multiStrategy.agreement === "STRONG" ? "text-[#10b981] border-[#10b981]/30 bg-[#10b981]/10" :
+                  multiStrategy.agreement === "MODERATE" ? "text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10" :
+                  multiStrategy.agreement === "CONFLICT" ? "text-[#ef4444] border-[#ef4444]/30 bg-[#ef4444]/10" :
+                  "text-[#64748b] border-[#1e2d3d]"
+                }`}>
+                  {multiStrategy.agreement}
+                </span>
+              </div>
+            </div>
+            <div className="mt-1">
+              <span className="text-[8px] text-[#475569]">
+                Best: {STRATEGY_LABELS[multiStrategy.topStrategy] || multiStrategy.topStrategy}
+                <span className="mx-1">·</span>
+                Avg confidence: {multiStrategy.avgConfidence}%
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Strategy Probability */}
       <div className="glass-card mx-2 mb-2 rounded-sm">
         <div className="px-3 py-2 border-b border-[#1e2d3d] flex items-center gap-1.5">
           <BarChart3 className="w-3 h-3 text-[#f59e0b]" />
           <span className="text-[10px] font-semibold text-[#e2e8f0] uppercase tracking-wider">Probability</span>
         </div>
         <div className="p-3 space-y-2">
-          <ProbabilityBar label="Bullish Scenario" value={72} color="#10b981" />
-          <ProbabilityBar label="Bearish Scenario" value={18} color="#ef4444" />
-          <ProbabilityBar label="Range Scenario" value={10} color="#64748b" />
-        </div>
-      </div>
-
-      {/* Higher Timeframe Bias Panel */}
-      <div className="glass-card mx-2 mb-2 rounded-sm">
-        <div className="px-3 py-2 border-b border-[#1e2d3d] flex items-center gap-1.5">
-          <TrendingUp className="w-3 h-3 text-[#06b6d4]" />
-          <span className="text-[10px] font-semibold text-[#e2e8f0] uppercase tracking-wider">HTF Bias</span>
-        </div>
-        <div className="p-3 space-y-1.5">
-          {[
-            { tf: "Weekly", bias: "Bullish" as Direction },
-            { tf: "Daily", bias: "Bullish" as Direction },
-            { tf: "4H", bias: "Bullish" as Direction },
-            { tf: "1H", bias: "Bullish" as Direction },
-            { tf: "15M", bias: "Bullish" as Direction },
-          ].map((item) => (
-            <div key={item.tf} className="flex items-center justify-between">
-              <span className="text-[10px] text-[#64748b] font-medium">{item.tf}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-[9px] font-bold text-[#10b981]">{item.bias}</span>
-                <ArrowUp className="w-3 h-3 text-[#10b981]" />
-              </div>
-            </div>
-          ))}
+          <ProbabilityBar label="Bullish Scenario" value={multiStrategy ? Math.round(multiStrategy.buyVotes * 25) : 72} color="#10b981" />
+          <ProbabilityBar label="Bearish Scenario" value={multiStrategy ? Math.round(multiStrategy.sellVotes * 25) : 18} color="#ef4444" />
+          <ProbabilityBar label="Avg Confidence" value={multiStrategy?.avgConfidence || 50} color="#06b6d4" />
         </div>
       </div>
 

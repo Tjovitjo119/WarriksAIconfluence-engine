@@ -20,8 +20,9 @@ import MultiTimeframeGrid from "@/components/MultiTimeframeGrid";
 
 import { analyzeSession } from "@/engine/session";
 import { runDecisionEngine } from "@/engine/decision";
+import { runMultiStrategy, getStrategySummary } from "@/engine/strategies";
 import { generateCandles, getMarketSnapshot, getMockSignals, getMockTradeHistory } from "@/engine/marketData";
-import type { MarketData, Signal, TradeRecord, Candle, TradeDecision } from "@/engine/types";
+import type { MarketData, Signal, TradeRecord, Candle, TradeDecision, MultiStrategyOutput } from "@/engine/types";
 import { DEFAULT_SYMBOLS } from "@/engine/types";
 
 export default function Dashboard() {
@@ -37,6 +38,7 @@ export default function Dashboard() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [trades] = useState<TradeRecord[]>(getMockTradeHistory);
   const [lastDecision, setLastDecision] = useState<TradeDecision | null>(null);
+  const [multiStrategy, setMultiStrategy] = useState<MultiStrategyOutput | null>(null);
   const [sessionInfo, setSessionInfo] = useState(analyzeSession());
   const [refreshing, setRefreshing] = useState(false);
   const [dataSource, setDataSource] = useState<"live" | "synthetic">("synthetic");
@@ -81,6 +83,8 @@ export default function Dashboard() {
         if (activeCandles && activeCandles.length > 0) {
           const decision = runDecisionEngine(activeSymbol, activeCandles);
           setLastDecision(decision);
+          const multi = runMultiStrategy(activeSymbol, activeCandles);
+          setMultiStrategy(multi);
         }
 
         if (isInitial) {
@@ -113,6 +117,9 @@ export default function Dashboard() {
 
     const decision = runDecisionEngine(activeSymbol, initialCandles[activeSymbol]);
     setLastDecision(decision);
+
+    const multi = runMultiStrategy(activeSymbol, initialCandles[activeSymbol]);
+    setMultiStrategy(multi);
   }, [fetchLiveCandles, activeSymbol]);
 
   // Initial load
@@ -186,6 +193,9 @@ export default function Dashboard() {
     if (candles && candles.length > 0) {
       const decision = runDecisionEngine(activeSymbol, candles);
       setLastDecision(decision);
+
+      const multi = runMultiStrategy(activeSymbol, candles);
+      setMultiStrategy(multi);
     }
   }, [activeSymbol, candlesMap]);
 
@@ -205,6 +215,12 @@ export default function Dashboard() {
     setActiveSymbol(symbol);
   }, []);
 
+  // Strategy consensus summary
+  const strategySummary = useMemo(() => {
+    if (!multiStrategy) return null;
+    return getStrategySummary(multiStrategy);
+  }, [multiStrategy]);
+
   // Chart overlay data
   const chartData = useMemo(() => {
     const candles = candlesMap[activeSymbol] || [];
@@ -220,8 +236,9 @@ export default function Dashboard() {
       activeSymbol,
       currentPrice: candles.length > 0 ? candles[candles.length - 1].close : 0,
       decision,
+      multiStrategy,
     };
-  }, [candlesMap, activeSymbol, lastDecision]);
+  }, [candlesMap, activeSymbol, lastDecision, multiStrategy]);
 
   if (isLoading) {
     return (
@@ -278,13 +295,22 @@ export default function Dashboard() {
 
         {/* Right Panel */}
         <div className="w-[280px] shrink-0 border-l border-[#1e2d3d] overflow-hidden">
-          <RightPanel signals={signals} />
+          <RightPanel
+            signals={signals}
+            multiStrategy={multiStrategy}
+            strategySummary={strategySummary}
+          />
         </div>
       </div>
 
       {/* Bottom Analytics */}
       <div className="h-[155px] shrink-0 border-t border-[#1e2d3d]">
-        <BottomAnalytics trades={trades} markets={markets} />
+        <BottomAnalytics
+          trades={trades}
+          markets={markets}
+          multiStrategy={multiStrategy}
+          strategySummary={strategySummary}
+        />
       </div>
 
       {/* Status Bar */}
@@ -296,6 +322,10 @@ export default function Dashboard() {
           <span className="w-px h-2.5 bg-[#1e2d3d]" />
           <span className={`text-[8px] ${lastDecision?.confluenceScore && lastDecision.confluenceScore >= 85 ? "text-[#10b981]" : "text-[#475569]"}`}>
             Confluence: {lastDecision?.confluenceScore || 0}/100
+          </span>
+          <span className="w-px h-2.5 bg-[#1e2d3d]" />
+          <span className={`text-[8px] ${multiStrategy?.agreement === "STRONG" ? "text-[#10b981]" : multiStrategy?.agreement === "CONFLICT" ? "text-[#ef4444]" : "text-[#f59e0b]"}`}>
+            Strategies: {multiStrategy?.agreement || "—"} ({multiStrategy?.buyVotes || 0}▲/{multiStrategy?.sellVotes || 0}▼)
           </span>
           <span className="w-px h-2.5 bg-[#1e2d3d]" />
           <span className="text-[8px] text-[#475569]">

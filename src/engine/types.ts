@@ -163,5 +163,56 @@ export interface MarketData {
   volume: number;
 }
 
+// ============================================================================
+// Multi-Strategy Engine Types
+// ============================================================================
+export type StrategyType = "ICT_SMC" | "MOMENTUM" | "MEAN_REVERSION" | "BREAKOUT";
+export type AgreementLevel = "STRONG" | "MODERATE" | "WEAK" | "CONFLICT";
+
+// Individual strategy output
+export interface StrategyResult {
+  type: StrategyType;
+  direction: Direction;
+  confidence: number; // 0–100
+  reason: string;
+  indicators: Record<string, number>;
+  active: boolean;
+}
+
+// Combined multi-strategy output
+export interface MultiStrategyOutput {
+  strategies: StrategyResult[];
+  agreement: AgreementLevel;
+  consensusDirection: Direction;
+  buyVotes: number;
+  sellVotes: number;
+  neutralVotes: number;
+  topStrategy: StrategyType;
+  avgConfidence: number;
+}
+
+// Technical indicator values
+export interface IndicatorValues {
+  rsi: number;
+  macd: { macdLine: number; signalLine: number; histogram: number };
+  adx: number;
+  bollinger: { upper: number; middle: number; lower: number };
+  donchian: { upper: number; middle: number; lower: number };
+  sma20: number;
+  sma50: number;
+  ema9: number;
+  ema21: number;
+  atr: number;
+  volumeAvg: number;
+  zscore: number;
+}
+
 export const DEFAULT_SYMBOLS = ["NAS100", "XAUUSD", "EURUSD", "GBPUSD"] as const;
 export type SymbolName = (typeof DEFAULT_SYMBOLS)[number];
+
+export const STRATEGY_LABELS: Record<StrategyType, string> = {
+  ICT_SMC: "ICT / SMC",
+  MOMENTUM: "Momentum",
+  MEAN_REVERSION: "Mean Reversion",
+  BREAKOUT: "Breakout",
+};
