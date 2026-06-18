@@ -7,7 +7,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { Zap } from "lucide-react";
 import { useAction } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -18,6 +17,7 @@ import CenterChart from "@/components/CenterChart";
 import RightPanel from "@/components/RightPanel";
 import BottomAnalytics from "@/components/BottomAnalytics";
 import MultiTimeframeGrid from "@/components/MultiTimeframeGrid";
+import SignalPulse from "@/components/SignalPulse";
 
 // ============================================================================
 // All Dashboard View Components
@@ -302,12 +302,10 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
-        <div className="flex items-center gap-2.5 text-[#64748b]">
-          <div className="w-5 h-5 rounded-sm gradient-cyan flex items-center justify-center">
-            <Zap className="w-3 h-3 text-white animate-pulse" />
-          </div>
+        <div className="flex items-center gap-3 text-[#64748b]">
+          <SignalPulse color="cyan" size="lg" />
           <span className="trading-mono text-xs">Loading WARRIKS AI Terminal...</span>
-          <span className="status-dot online ml-1" />
+          <SignalPulse.LiveDot color="green" />
         </div>
       </div>
     );
@@ -445,25 +443,44 @@ export default function Dashboard() {
           <span className="w-px h-2.5 bg-[#1e2d3d]" />
           <span className="text-[8px] text-[#475569]">Institutional Multi-Strategy Execution Machine</span>
           <span className="w-px h-2.5 bg-[#1e2d3d]" />
-          <span className={`text-[8px] ${lastDecision?.confluenceScore && lastDecision.confluenceScore >= 85 ? "text-[#10b981]" : "text-[#475569]"}`}>
-            Confluence: {lastDecision?.confluenceScore || 0}/100
-          </span>
-          <span className="w-px h-2.5 bg-[#1e2d3d]" />
-          <span className={`text-[8px] ${multiStrategy?.agreement === "STRONG" ? "text-[#10b981]" : multiStrategy?.agreement === "CONFLICT" ? "text-[#ef4444]" : "text-[#f59e0b]"}`}>
-            Strategies: {multiStrategy?.agreement || "—"} ({multiStrategy?.buyVotes || 0}▲/{multiStrategy?.sellVotes || 0}▼)
-          </span>
-          <span className="w-px h-2.5 bg-[#1e2d3d]" />
-          <span className="text-[8px] text-[#475569]">
-            {sessionInfo.inKillzone ? (
-              <span className="text-[#10b981]">● {sessionInfo.currentKillzone} KILLZONE ACTIVE</span>
+          <div className="flex items-center gap-1.5">
+            {lastDecision?.status === "TRADE" && lastDecision.confluenceScore >= 85 ? (
+              <SignalPulse color="green" size="sm" />
+            ) : lastDecision?.confluenceScore && lastDecision.confluenceScore >= 75 ? (
+              <SignalPulse color="gold" size="sm" />
             ) : (
-              <span>○ {sessionInfo.currentKillzone}</span>
+              <SignalPulse color="neutral" size="sm" active={false} />
             )}
-          </span>
+            <span className={`text-[8px] ${lastDecision?.confluenceScore && lastDecision.confluenceScore >= 85 ? "text-[#10b981]" : "text-[#475569]"}`}>
+              Confluence: {lastDecision?.confluenceScore || 0}/100
+            </span>
+          </div>
+          <span className="w-px h-2.5 bg-[#1e2d3d]" />
+          <div className="flex items-center gap-1.5">
+            <SignalPulse
+              color={multiStrategy?.agreement === "STRONG" ? "green" : multiStrategy?.agreement === "CONFLICT" ? "red" : "gold"}
+              size="sm"
+              active={!!multiStrategy && multiStrategy.agreement !== "WEAK"}
+            />
+            <span className={`text-[8px] ${multiStrategy?.agreement === "STRONG" ? "text-[#10b981]" : multiStrategy?.agreement === "CONFLICT" ? "text-[#ef4444]" : "text-[#f59e0b]"}`}>
+              Strategies: {multiStrategy?.agreement || "—"} ({multiStrategy?.buyVotes || 0}▲/{multiStrategy?.sellVotes || 0}▼)
+            </span>
+          </div>
+          <span className="w-px h-2.5 bg-[#1e2d3d]" />
+          <div className="flex items-center gap-1.5">
+            <SignalPulse.LiveDot color={sessionInfo.inKillzone ? "green" : "neutral"} />
+            <span className="text-[8px] text-[#475569]">
+              {sessionInfo.inKillzone ? (
+                <span className="text-[#10b981]">{sessionInfo.currentKillzone} KILLZONE ACTIVE</span>
+              ) : (
+                <span>{sessionInfo.currentKillzone}</span>
+              )}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[8px] text-[#475569]">{user?.name || user?.email || "Trader"}</span>
-          <span className="status-dot online" />
+          <SignalPulse.LiveDot color="green" />
         </div>
       </footer>
     </div>

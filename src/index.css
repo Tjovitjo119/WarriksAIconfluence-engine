@@ -459,6 +459,189 @@
 }
 
 /* ============================================================================
+ * Signal Pulse Animations — Active signal glow effects
+ * ============================================================================ */
+.signal-pulse {
+  position: relative;
+}
+
+.signal-pulse::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  animation: signal-pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+.signal-pulse.buy::before {
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.05);
+}
+
+.signal-pulse.sell::before {
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.05);
+}
+
+.signal-pulse.neutral::before {
+  border: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+@keyframes signal-pulse-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+/* Active signal glow — spreads radially */
+.signal-glow-active {
+  position: relative;
+  overflow: hidden;
+}
+
+.signal-glow-active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
+  animation: signal-glow-pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.signal-glow-active.bearish::after {
+  background: radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.04) 0%, transparent 70%);
+}
+
+@keyframes signal-glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Confidence score pulse */
+@keyframes confidence-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.confidence-pulse {
+  animation: confidence-pulse 2.5s ease-in-out infinite;
+}
+
+/* Entry zone shimmer */
+@keyframes zone-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.zone-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(16, 185, 129, 0.03) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: zone-shimmer 4s ease-in-out infinite;
+}
+
+.zone-shimmer.bearish {
+  background: linear-gradient(90deg, transparent 0%, rgba(239, 68, 68, 0.03) 50%, transparent 100%);
+  background-size: 200% 100%;
+}
+
+/* Signal badge pulse */
+.signal-badge-pulse {
+  animation: badge-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(6, 182, 212, 0);
+  }
+}
+
+/* Live indicator dot with extra glow */
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.live-dot::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  animation: live-dot-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.live-dot.online {
+  background: #10b981;
+}
+.live-dot.online::before {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.live-dot.warning {
+  background: #f59e0b;
+}
+.live-dot.warning::before {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+@keyframes live-dot-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.1; transform: scale(2.2); }
+}
+
+/* Signal card border glow */
+.signal-card-glow {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.signal-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, transparent 40%, rgba(16, 185, 129, 0.08) 50%, transparent 60%);
+  background-size: 300% 300%;
+  animation: border-glow-sweep 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.signal-card-glow.bearish::before {
+  background: linear-gradient(135deg, transparent 40%, rgba(239, 68, 68, 0.08) 50%, transparent 60%);
+  background-size: 300% 300%;
+}
+
+.signal-card-glow > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes border-glow-sweep {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* ============================================================================
  * Chart Canvas
  * ============================================================================ */
 .chart-canvas {
