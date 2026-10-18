@@ -10,7 +10,10 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 
+import os
+
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from agents import AGENTS, classify
@@ -37,11 +40,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="WarriksAI router", lifespan=lifespan)
+# The /router UI runs in the browser on another origin; allow it (override via ROUTER_CORS_ORIGINS).
+app.add_middleware(CORSMiddleware, allow_methods=["*"], allow_headers=["*"],
+                   allow_origins=os.getenv("ROUTER_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(","))
 
 
 @app.get("/health")
 async def health():
     return {"ok": True, "claude_budget_remaining": app.state.layer.budget_remaining()}
+
+
+@app.get("/usage")
+async def usage(limit: int = 25):
+    layer = app.state.layer
+    return {"budget": layer.cfg.daily_claude_token_budget,
+            "used_today": layer.store.claude_tokens_today(),
+            "remaining": layer.budget_remaining(),
+            "recent": layer.store.recent(min(limit, 200))}
 
 
 @app.get("/v1/models")

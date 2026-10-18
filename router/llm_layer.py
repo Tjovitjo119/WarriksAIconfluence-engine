@@ -115,6 +115,15 @@ class UsageStore:
             )
             self._db.commit()
 
+    def recent(self, limit: int = 25) -> list[dict]:
+        with self._lock:
+            cur = self._db.execute(
+                "SELECT ts, agent, provider, model, input_tokens, output_tokens,"
+                " latency_ms, fallback_reason, error FROM requests"
+                " ORDER BY id DESC LIMIT ?", (limit,))
+            cols = [c[0] for c in cur.description]
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
+
     def claude_tokens_today(self) -> int:
         day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         with self._lock:

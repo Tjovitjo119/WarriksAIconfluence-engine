@@ -35,3 +35,13 @@ def test_endpoint_failover(tmp_path):
     assert j["x_router"]["provider"] == "ollama"
     assert j["x_router"]["fallback_reason"] == "claude_http_429"
     assert j["choices"][0]["message"]["content"] == "hi"
+
+
+def test_usage_endpoint(tmp_path):
+    cfg = Config(db_path=str(tmp_path / "u.db"))
+    layer = LLMCallLayer(cfg, UsageStore(cfg.db_path))
+    layer.store.log(agent="FORGE", provider="claude", model="m", input_tokens=5, output_tokens=7)
+    with TestClient(appmod.app) as c:
+        appmod.app.state.layer = layer
+        j = c.get("/usage").json()
+    assert j["used_today"] == 12 and j["recent"][0]["agent"] == "FORGE"
